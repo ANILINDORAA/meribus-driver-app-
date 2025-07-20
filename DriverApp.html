@@ -20,7 +20,7 @@
         .btn { width: 100%; padding: 15px; background: linear-gradient(45deg, #4CAF50, #81C784); color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .btn-secondary { background: linear-gradient(45deg, #888, #aaa); }
         .route-list { display: flex; flex-direction: column; gap: 10px; }
-        .route-list .route-item { background-color: #f9f9f9; padding: 20px; border-radius: 8px; cursor: pointer; border-left: 5px solid #4285F4; transition: background-color 0.3s; font-size: 18px; font-weight: bold; }
+        .route-list .route-item { background-color: #f9f2f2; padding: 20px; border-radius: 8px; cursor: pointer; border-left: 5px solid #4285F4; transition: background-color 0.3s; font-size: 18px; font-weight: bold; }
         .status-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .status-container p { font-size: 20px; color: #888; margin: 0; }
         .status-container h2 { font-size: 32px; font-weight: bold; margin-top: 10px; }
@@ -65,22 +65,20 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- कॉन्फ़िगरेशन ---
-            // <<-- ज़रूरी बदलाव: यह IP एड्रेस आपके Termux सर्वर का होना चाहिए
-            const API_BASE_URL = 'http://192.168.31.104:5000/api';
+            // <<-- यहाँ अपना serveo.net का URL डालें!
+            const API_BASE_URL = 'https://YOUR_SERVEO_URL/api'; 
             
-            // --- ग्लोबल वेरिएबल्स ---
+            // --- बाकी का जावास्क्रिप्ट कोड बिल्कुल पहले जैसा ही है ---
             let isTracking = false;
             let trackingIntervalId = null;
             let currentDriver = null;
             let selectedRouteId = null;
 
-            // --- DOM Elements ---
             const loginBtn = document.getElementById('login-btn');
             const logoutBtn = document.getElementById('logout-btn');
             const trackingBtn = document.getElementById('tracking-btn');
             const backToRoutesBtn = document.getElementById('back-to-routes-btn');
 
-            // --- फंक्शन्स ---
             function showScreen(screenId) {
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById(screenId).classList.add('active');
@@ -90,7 +88,6 @@
                 const loginId = document.getElementById('driver-id').value;
                 const password = document.getElementById('password').value;
                 if (!loginId) return alert('ड्राइवर आईडी डालें');
-
                 try {
                     const response = await fetch(`${API_BASE_URL}/driver/login`, {
                         method: 'POST',
@@ -98,21 +95,18 @@
                         body: JSON.stringify({ loginId, password }),
                     });
                     const data = await response.json();
-                    if (!response.ok) {
-                        return alert(`लॉगिन फेल: ${data.message}`);
-                    }
-                    
+                    if (!response.ok) return alert(`लॉगिन फेल: ${data.message}`);
                     currentDriver = data.driver;
                     alert(`स्वागत है, ${currentDriver.name}!`);
                     showScreen('route-screen');
                 } catch (error) {
                     console.error('लॉगिन में समस्या:', error);
-                    alert('सर्वर से जुड़ने में समस्या। सुनिश्चित करें कि Termux सर्वर चल रहा है और IP सही है।');
+                    alert('सर्वर से जुड़ने में समस्या। सुनिश्चित करें कि Termux सर्वर चल रहा है।');
                 }
             }
 
             function handleLogout() {
-                if (isTracking) { return alert("लॉगआउट करने से पहले कृपया ट्रैकिंग बंद करें।"); }
+                if (isTracking) return alert("लॉगआउट करने से पहले कृपया ट्रैकिंग बंद करें।");
                 currentDriver = null;
                 showScreen('login-screen');
             }
@@ -126,34 +120,24 @@
             function toggleTracking() {
                 isTracking = !isTracking;
                 updateTrackingUI();
-                
                 if (isTracking) {
-                    // पहले GPS की असली लोकेशन लें, फिर इंटरवल शुरू करें
                     updateLocationWithRealGPS();
-                    trackingIntervalId = setInterval(updateLocationWithRealGPS, 15000); // हर 15 सेकंड
+                    trackingIntervalId = setInterval(updateLocationWithRealGPS, 15000);
                 } else {
                     clearInterval(trackingIntervalId);
-                    updateLocation(); // ट्रैकिंग बंद होने की जानकारी (isTrackingActive: false) भेजो
+                    updateLocation();
                 }
             }
             
             function updateLocationWithRealGPS() {
-                if (!navigator.geolocation) {
-                    alert("आपका ब्राउज़र GPS लोकेशन को सपोर्ट नहीं करता।");
-                    return;
-                }
-                
+                if (!navigator.geolocation) return alert("आपका ब्राउज़र GPS लोकेशन को सपोर्ट नहीं करता।");
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
-                        // लोकेशन सफलतापूर्वक मिली
-                        const coords = [position.coords.longitude, position.coords.latitude];
-                        updateLocation(coords);
+                        updateLocation([position.coords.longitude, position.coords.latitude]);
                     },
                     (error) => {
-                        // लोकेशन मिलने में एरर
                         console.error("GPS Error:", error.message);
                         alert(`GPS एरर: ${error.message}\nहम टेस्टिंग के लिए एक नकली लोकेशन भेज रहे हैं।`);
-                        // अगर GPS काम न करे तो भी टेस्टिंग चलती रहे
                         updateLocation();
                     }
                 );
@@ -161,13 +145,7 @@
 
             async function updateLocation(coordinates = null) {
                 if (!currentDriver || !selectedRouteId) return;
-                
-                let finalCoordinates = coordinates;
-                if (!finalCoordinates) {
-                    // अगर GPS से लोकेशन नहीं मिली तो नकली लोकेशन बनाओ
-                    finalCoordinates = [ 73.2083 + (Math.random() - 0.5) * 0.1, 29.1907 + (Math.random() - 0.5) * 0.1 ];
-                }
-
+                let finalCoordinates = coordinates || [ 73.2083 + (Math.random() - 0.5) * 0.1, 29.1907 + (Math.random() - 0.5) * 0.1 ];
                 try {
                     const response = await fetch(`${API_BASE_URL}/track/update`, {
                         method: 'POST',
@@ -184,7 +162,6 @@
                 } catch (error) {
                     console.error('लोकेशन भेजने में समस्या:', error);
                     alert("लोकेशन सर्वर पर नहीं भेज पाए। ट्रैकिंग रुक गई है।");
-                    // एरर आने पर ट्रैकिंग बंद कर दें
                     isTracking = false; 
                     updateTrackingUI(); 
                     clearInterval(trackingIntervalId);
@@ -209,16 +186,12 @@
                 }
             }
 
-            // --- इवेंट लिस्नर्स ---
             loginBtn.addEventListener('click', handleLogin);
             trackingBtn.addEventListener('click', toggleTracking);
             logoutBtn.addEventListener('click', handleLogout);
             backToRoutesBtn.addEventListener('click', () => {
-                if (isTracking) {
-                    alert("दूसरा रूट चुनने से पहले कृपया ट्रैकिंग बंद करें।");
-                } else {
-                    showScreen('route-screen');
-                }
+                if (isTracking) alert("दूसरा रूट चुनने से पहले कृपया ट्रैकिंग बंद करें।");
+                else showScreen('route-screen');
             });
         });
         // --- END OF JAVASCRIPT ---
