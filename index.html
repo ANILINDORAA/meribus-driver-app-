@@ -1,576 +1,63 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>मेरी बस - ड्राइवर ऐप</title>
-    <style>
-        /* --- START OF CSS --- */
-        
-        /* बेसिक रीसेट और बॉडी स्टाइल */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f2f5;
-            overflow: hidden;
-        }
-
-        /* ऐप का मुख्य कंटेनर */
-        .app-container {
-            width: 100%;
-            height: 100%;
-            max-width: 420px;
-            margin: 0 auto;
-            background: #ffffff;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        /* सभी स्क्रीनों के लिए कॉमन स्टाइल */
-        .screen {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            padding: 25px;
-            box-sizing: border-box;
-            background: white;
-            animation: fadeIn 0.5s;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* हेडर सेक्शन */
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-            flex-shrink: 0;
-        }
-
-        .header h1 {
-            color: #333;
-            font-size: 1.8em;
-            margin: 0;
-        }
-
-        .app-logo {
-            max-width: 70px;
-            height: auto;
-            margin-bottom: 15px;
-        }
-        
-        /* भाषा चयन */
-        #language-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .lang-btn {
-            background-color: #e9ecef;
-            border: 1px solid #ccc;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .lang-btn.active {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        /* फॉर्म ग्रुप्स */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 600;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1em;
-        }
-
-        /* बटन स्टाइल्स */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            background-color: #007bff;
-            color: white;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            margin-top: 15px;
-            transition: background-color 0.3s ease;
-        }
-        
-        .btn:disabled {
-            background-color: #a0cffa;
-            cursor: not-allowed;
-        }
-
-        .btn:hover:not(:disabled) {
-            background-color: #0056b3;
-        }
-
-        .btn-secondary {
-            background-color: #6c757d;
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background-color: #5a6268;
-        }
-
-        /* रूट चुनने वाली स्क्रीन */
-        .route-list {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-
-        .route-item {
-            background: #e9ecef;
-            padding: 20px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 1.15em;
-            font-weight: 500;
-            transition: background-color 0.2s, transform 0.2s;
-        }
-
-        .route-item:hover {
-            background-color: #d3d9df;
-            transform: scale(1.02);
-        }
-        
-        /* भाषा बदलने का लिंक */
-        .change-language-container {
-            text-align: center;
-            margin-top: auto;
-            padding-top: 20px;
-            padding-bottom: 5px;
-        }
-        .change-language-container a {
-            color: #007bff;
-            text-decoration: none;
-            font-size: 0.9em;
-        }
-        .change-language-container a:hover {
-            text-decoration: underline;
-        }
-
-        /* ट्रैकिंग स्क्रीन */
-        .status-container {
-            text-align: center;
-            margin: 20px 0;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .status-container p {
-            margin: 0;
-            color: #666;
-            font-size: 1.2em;
-        }
-
-        #tracking-status {
-            font-size: 2.2em;
-            font-weight: bold;
-            margin: 10px 0;
-            padding: 10px 20px;
-            border-radius: 12px;
-            transition: all 0.4s ease;
-        }
-
-        #tracking-status.on {
-            color: #ffffff;
-            background-color: #28a745;
-        }
-
-        #tracking-status.off {
-            color: #ffffff;
-            background-color: #dc3545;
-        }
-
-        #tracking-btn.active {
-            background-color: #dc3545;
-        }
-        #tracking-btn.active:hover {
-            background-color: #c82333;
-        }
-        
-        :fullscreen .app-container { max-width: 100%; max-height: 100%; box-shadow: none; }
-        :-webkit-full-screen .app-container { max-width: 100%; max-height: 100%; box-shadow: none; }
-        :-moz-full-screen .app-container { max-width: 100%; max-height: 100%; box-shadow: none; }
-        
-        /* --- END OF CSS --- */
-    </style>
+  <title>Driver Panel - Bablu</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    h1 {
+      color: #2E86C1;
+    }
+    .status {
+      margin-top: 20px;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <!-- Login Screen -->
-        <div id="login-screen" class="screen active">
-            <div class="header">
-                <img src="data:image/png;base64,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" alt="Meri Bus Driver Logo" class="app-logo">
-                <h1 data-lang-key="driverLogin">ड्राइवर लॉगिन</h1>
-            </div>
-            <div id="language-selector" class="lang-selector">
-                <button id="lang-en" class="lang-btn">English</button>
-                <button id="lang-hi" class="lang-btn">हिन्दी</button>
-            </div>
-            <div class="form-group">
-                <label for="driver-id" data-lang-key="driverIdLabel">ड्राइवर आईडी</label>
-                <input type="text" id="driver-id" value="RAMU_01">
-            </div>
-            <div class="form-group">
-                <label for="password" data-lang-key="passwordLabel">पासवर्ड</label>
-                <input type="password" id="password" value="Ramu@123">
-            </div>
-            <button id="login-btn" class="btn" data-lang-key="loginButtonText">लॉगिन करें</button>
-        </div>
-        
-        <!-- Route Selection Screen -->
-        <div id="route-screen" class="screen">
-            <div class="header">
-                <h1 data-lang-key="selectRouteTitle">अपना रूट चुनें</h1>
-            </div>
-            <div class="route-list">
-                 <div class="route-item" onclick="selectRoute('अनूपगढ़ → नरवाली', 'route_anp_nrw')">अनूपगढ़ → नरवाली</div>
-                 <div class="route-item" onclick="selectRoute('नरवाली → अनूपगढ़ (वापसी)', 'route_nrw_anp')">नरवाली → अनूपगढ़ (वापसी)</div>
-            </div>
-            <div class="change-language-container">
-                <a href="#" id="change-language-btn" data-lang-key="changeLanguage">भाषा बदलें</a>
-            </div>
-            <button id="logout-btn" class="btn btn-secondary" data-lang-key="logoutButtonText">लॉगआउट</button>
-        </div>
-        
-        <!-- Tracking Screen -->
-        <div id="tracking-screen" class="screen">
-            <div class="header">
-                <h1 id="tracking-route-name">रूट: [रूट का नाम]</h1>
-            </div>
-            <div class="status-container">
-                <p data-lang-key="statusLabel">स्टेटस</p>
-                <h2 id="tracking-status" class="off" data-lang-key="trackingOff">ट्रैकिंग बंद है</h2>
-            </div>
-            <button id="tracking-btn" class="btn" data-lang-key="startTrackingBtn">ट्रैकिंग शुरू करें</button>
-            <button id="back-to-routes-btn" class="btn btn-secondary" data-lang-key="backToRoutesBtn">दूसरा रूट चुनें</button>
-        </div>
-    </div>
+  <h1>🚌 Driver Bablu Panel</h1>
+  <p class="status">Live location sending every 5 seconds...</p>
 
-    <script>
-        // --- START OF JAVASCRIPT ---
-        document.addEventListener('DOMContentLoaded', () => {
+  <script>
+    const driverId = "bablu123";
 
-            // --- कॉन्फ़िगरेशन और अनुवाद ---
-            const API_BASE_URL = 'https://meri-bus-server.onrender.com/api';
-            const translations = {
-                // Login Screen
-                driverLogin: { en: 'Driver Login', hi: 'ड्राइवर लॉगिन' },
-                driverIdLabel: { en: 'Driver ID', hi: 'ड्राइवर आईडी' },
-                passwordLabel: { en: 'Password', hi: 'पासवर्ड' },
-                loginButtonText: { en: 'Log In', hi: 'लॉगिन करें' },
-                // Route Screen
-                selectRouteTitle: { en: 'Select Your Route', hi: 'अपना रूट चुनें' },
-                logoutButtonText: { en: 'Logout', hi: 'लॉगआउट' },
-                changeLanguage: { en: 'Change Language', hi: 'भाषा बदलें' },
-                // Tracking Screen
-                statusLabel: { en: 'Status', hi: 'स्टेटस' },
-                trackingOff: { en: 'Tracking OFF', hi: 'ट्रैकिंग बंद है' },
-                trackingOn: { en: 'Tracking ON', hi: 'ट्रैकिंग चालू है' },
-                startTrackingBtn: { en: 'Start Tracking', hi: 'ट्रैकिंग शुरू करें' },
-                stopTrackingBtn: { en: 'Stop Tracking', hi: 'ट्रैकिंग बंद करें' },
-                backToRoutesBtn: { en: 'Choose Another Route', hi: 'दूसरा रूट चुनें' },
-                // Alerts & Dynamic Text
-                welcomeAlert: { en: 'Welcome!', hi: 'स्वागत है!' }, // <-- यहाँ बदलाव किया गया है
-                loggingIn: { en: 'Logging in...', hi: 'लॉगिन हो रहा है...' },
-                enterCredentials: { en: 'Please enter Driver ID and Password', hi: 'कृपया ड्राइवर आईडी और पासवर्ड डालें' },
-                loginFailed: { en: 'Login Failed:', hi: 'लॉगिन फेल:' },
-                serverError: { en: 'Could not connect to the server. Please check your internet connection.', hi: 'सर्वर से जुड़ने में समस्या। कृपया अपना इंटरनेट कनेक्शन जांचें।' },
-                stopTrackingFirst: { en: 'Please stop tracking before logging out.', hi: 'लॉगआउट करने से पहले कृपया ट्रैकिंग बंद करें।' },
-                stopTrackingToChangeLang: { en: 'Please stop tracking before changing the language.', hi: 'भाषा बदलने से पहले कृपया ट्रैकिंग बंद करें।'},
-                stopTrackingToChangeRoute: { en: 'Please stop tracking before choosing another route.', hi: 'दूसरा रूट चुनने से पहले कृपया ट्रैकिंग बंद करें।' },
-                gpsNotSupported: { en: 'Your browser does not support GPS location.', hi: 'आपका ब्राउज़र GPS लोकेशन को सपोर्ट नहीं करता।' },
-                gpsError: { en: 'GPS Error:', hi: 'GPS एरर:' },
-                enableLocation: { en: 'Please allow location access.', hi: 'कृपया लोकेशन की अनुमति दें।' },
-                locationUpdateFailed: { en: 'Failed to send location to server. Tracking has stopped.', hi: 'लोकेशन सर्वर पर नहीं भेज पाए। ट्रैकिंग रुक गई है।' }
-            };
-
-            // --- वेरिएबल्स ---
-            let isTracking = false;
-            let trackingIntervalId = null;
-            let currentDriver = null;
-            let selectedRouteId = null;
-            let currentLanguage = 'hi'; 
-
-            // --- DOM एलिमेंट्स ---
-            const allScreens = document.querySelectorAll('.screen');
-            const loginBtn = document.getElementById('login-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-            const trackingBtn = document.getElementById('tracking-btn');
-            const backToRoutesBtn = document.getElementById('back-to-routes-btn');
-            const langEnBtn = document.getElementById('lang-en');
-            const langHiBtn = document.getElementById('lang-hi');
-            const langSelector = document.getElementById('language-selector');
-            const changeLangBtn = document.getElementById('change-language-btn');
-
-            // --- फंक्शन्स ---
-
-            function setLanguage(lang) {
-                currentLanguage = lang;
-                document.documentElement.lang = lang; 
-                document.querySelectorAll('[data-lang-key]').forEach(elem => {
-                    const key = elem.dataset.langKey;
-                    if (translations[key] && translations[key][currentLanguage]) {
-                        elem.textContent = translations[key][currentLanguage];
-                    }
-                });
-                langEnBtn.classList.toggle('active', lang === 'en');
-                langHiBtn.classList.toggle('active', lang === 'hi');
-                updateTrackingUI(); 
-            }
-            
-            function selectAndSaveLanguage(lang) {
-                setLanguage(lang);
-                try {
-                    localStorage.setItem('meriBusDriverLanguage', lang);
-                    langSelector.style.display = 'none';
-                } catch (e) {
-                    console.error("Could not save language to localStorage:", e);
-                }
-            }
-            
-            function handleChangeLanguageRequest() {
-                if (isTracking) {
-                    alert(translations.stopTrackingToChangeLang[currentLanguage]);
-                    return;
-                }
-                
-                try {
-                    localStorage.removeItem('meriBusDriverLanguage');
-                } catch(e) {
-                     console.error("Could not remove language from localStorage:", e);
-                }
-                
-                handleLogout();
-                
-                langSelector.style.display = 'flex';
-                setLanguage('hi');
-            }
-
-            function showScreen(screenId) {
-                allScreens.forEach(s => s.classList.remove('active'));
-                document.getElementById(screenId).classList.add('active');
-            }
-            
-            function goFullScreen() {
-                const elem = document.documentElement;
-                if (elem.requestFullscreen) elem.requestFullscreen().catch(err => console.error(`Fullscreen error: ${err.message}`));
-                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen().catch(err => console.error(`Fullscreen error: ${err.message}`));
-                else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-            }
-
-            async function handleLogin() {
-                const loginId = document.getElementById('driver-id').value;
-                const password = document.getElementById('password').value;
-                if (!loginId || !password) return alert(translations.enterCredentials[currentLanguage]);
-                
-                if (localStorage.getItem('meriBusDriverLanguage') === null) {
-                    selectAndSaveLanguage(currentLanguage);
-                }
-
-                loginBtn.textContent = translations.loggingIn[currentLanguage];
-                loginBtn.disabled = true;
-
-                try {
-                    const response = await fetch(`${API_BASE_URL}/driver/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ loginId, password }),
-                    });
-                    const data = await response.json();
-                    if (!response.ok) {
-                        alert(`${translations.loginFailed[currentLanguage]} ${data.message || ''}`);
-                        return;
-                    }
-                    currentDriver = data.driver;
-                    // --- यहाँ बदलाव किया गया है ---
-                    alert(translations.welcomeAlert[currentLanguage]);
-                    showScreen('route-screen');
-                    goFullScreen();
-                } catch (error) {
-                    console.error('Login Error:', error);
-                    alert(translations.serverError[currentLanguage]);
-                } finally {
-                    loginBtn.textContent = translations.loginButtonText[currentLanguage];
-                    loginBtn.disabled = false;
-                }
-            }
-
-            function handleLogout() {
-                if (isTracking) {
-                    alert(translations.stopTrackingFirst[currentLanguage]);
-                    return;
-                }
-                currentDriver = null;
-                showScreen('login-screen');
-            }
-
-            window.selectRoute = function(routeName, routeId) {
-                selectedRouteId = routeId;
-                document.getElementById('tracking-route-name').textContent = `Route: ${routeName}`;
-                showScreen('tracking-screen');
-                if (isTracking) {
-                   toggleTracking(); 
-                }
-            }
-
-            function toggleTracking() {
-                isTracking = !isTracking;
-                updateTrackingUI();
-                if (isTracking) {
-                    updateLocationWithRealGPS();
-                    trackingIntervalId = setInterval(updateLocationWithRealGPS, 15000);
-                } else {
-                    clearInterval(trackingIntervalId);
-                    updateLocation(null, false);
-                }
-            }
-            
-            function updateLocationWithRealGPS() {
-                if (!navigator.geolocation) return alert(translations.gpsNotSupported[currentLanguage]);
-                
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        updateLocation([position.coords.longitude, position.coords.latitude], true);
-                    },
-                    (error) => {
-                        console.error("GPS Error:", error.message);
-                        alert(`${translations.gpsError[currentLanguage]} ${error.message}\n${translations.enableLocation[currentLanguage]}`);
-                        isTracking = false; 
-                        updateTrackingUI(); 
-                        clearInterval(trackingIntervalId);
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            }
-
-            async function updateLocation(coordinates, trackingStatus) {
-                if (!currentDriver || !selectedRouteId) return;
-                
-                let payload = {
-                    driverId: currentDriver._id,
-                    routeId: selectedRouteId,
-                    isTrackingActive: trackingStatus
-                };
-                if (coordinates) payload.coordinates = coordinates;
-
-                try {
-                    const response = await fetch(`${API_BASE_URL}/track/update`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload),
-                    });
-                    if (!response.ok) throw new Error('Server response not OK');
-                    const data = await response.json();
-                    console.log(`Location update sent (${trackingStatus ? 'ON' : 'OFF'}): `, data.message);
-                } catch (error) {
-                    console.error('Location update error:', error);
-                    alert(translations.locationUpdateFailed[currentLanguage]);
-                    isTracking = false; 
-                    updateTrackingUI(); 
-                    clearInterval(trackingIntervalId);
-                }
-            }
-            
-            function updateTrackingUI() {
-                const statusText = document.getElementById('tracking-status');
-                const trackingBtn = document.getElementById('tracking-btn');
-                
-                if (isTracking) {
-                    trackingBtn.textContent = translations.stopTrackingBtn[currentLanguage];
-                    trackingBtn.classList.add('active');
-                    statusText.textContent = translations.trackingOn[currentLanguage];
-                    statusText.classList.remove('off');
-                    statusText.classList.add('on');
-                } else {
-                    trackingBtn.textContent = translations.startTrackingBtn[currentLanguage];
-                    trackingBtn.classList.remove('active');
-                    statusText.textContent = translations.trackingOff[currentLanguage];
-                    statusText.classList.remove('on');
-                    statusText.classList.add('off');
-                }
-            }
-
-            function initializeApp() {
-                let savedLang = null;
-                try {
-                    savedLang = localStorage.getItem('meriBusDriverLanguage');
-                } catch(e) {
-                    console.error("Could not access localStorage:", e);
-                }
-
-                if (savedLang) {
-                    langSelector.style.display = 'none'; 
-                    setLanguage(savedLang); 
-                } else {
-                    langSelector.style.display = 'flex';
-                    setLanguage('hi'); 
-                }
-            }
-
-
-            // --- इवेंट लिस्टनर्स ---
-            langEnBtn.addEventListener('click', () => selectAndSaveLanguage('en'));
-            langHiBtn.addEventListener('click', () => selectAndSaveLanguage('hi'));
-            changeLangBtn.addEventListener('click', handleChangeLanguageRequest);
-            loginBtn.addEventListener('click', handleLogin);
-            trackingBtn.addEventListener('click', toggleTracking);
-            logoutBtn.addEventListener('click', handleLogout);
-            backToRoutesBtn.addEventListener('click', () => {
-                if (isTracking) {
-                    alert(translations.stopTrackingToChangeRoute[currentLanguage]);
-                } else {
-                    showScreen('route-screen');
-                }
-            });
-            
-            // --- इनिशियलाइज़ेशन ---
-            initializeApp(); 
-
+    function sendLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          fetch("https://meri-bus-server.onrender.com/api/driver/update-location", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              driverId: driverId,
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude
+            })
+          }).then(res => {
+              console.log("Location sent");
+              document.querySelector(".status").innerText = "✅ Location updated at " + new Date().toLocaleTimeString();
+          })
+          .catch(err => {
+              console.error("Error:", err);
+              document.querySelector(".status").innerText = "❌ Error sending location.";
+          });
         });
-        // --- END OF JAVASCRIPT ---
-    </script>
+      } else {
+        alert("Geolocation not supported!");
+      }
+    }
+
+    // Start sending location every 5 seconds
+    setInterval(sendLocation, 5000);
+  </script>
+
 </body>
 </html>
